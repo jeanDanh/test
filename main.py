@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from auth import authenticate, create_new_user
+from auth import authenticate, create_new_user, create_connection
 
 # Function to handle login
 def login():
@@ -33,6 +33,19 @@ def create_user():
         else:
             st.error("Please fill out all fields to create a new user.")
 
+# Function to handle bulk user creation from Excel file
+def upload_excel():
+    st.subheader("Upload Excel File")
+    uploaded_file = st.file_uploader("Choose an Excel file", type="xlsx")
+    if uploaded_file is not None:
+        df = pd.read_excel(uploaded_file)
+        st.write(df)
+        if st.button("Add Users from Excel"):
+            conn = create_connection('users.db')
+            for index, row in df.iterrows():
+                create_new_user(row['username'], row['password'], row.get('role', 'student'))
+            st.success("Users added successfully from the Excel file")
+
 # Main function
 def main():
     # Initialize session state variables if not already done
@@ -63,6 +76,7 @@ def main():
             st.dataframe(dataframe.style.highlight_max(axis=0))
 
             create_user()
+            upload_excel()
     else:
         login()
 
